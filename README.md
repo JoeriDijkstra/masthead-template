@@ -28,8 +28,9 @@ extracts, or the upload will fail validation.
 
 ## The manifest
 
-`manifest.json` declares the theme's identity and the **tokens** a site
-owner can override per-site from the settings screen:
+`manifest.json` declares the theme's identity and two kinds of
+customization surfaces: **tokens** (site-wide knobs) and **metadata**
+(per-page knobs).
 
 ```json
 {
@@ -40,6 +41,10 @@ owner can override per-site from the settings screen:
   "description": "Minimal, readable, opinionated about typography.",
   "tokens": [
     { "key": "accent", "label": "Accent color", "type": "color", "default": "#0066cc" }
+  ],
+  "metadata": [
+    { "key": "layout", "label": "Page layout", "type": "select",
+      "options": ["contained", "wide"], "default": "contained" }
   ]
 }
 ```
@@ -49,8 +54,14 @@ owner can override per-site from the settings screen:
   reserved for built-ins — pick something else.
 - `version` bumps trigger a re-parse of cached templates on the next
   request. Use semver.
-- `tokens[].type` is one of `color`, `string`, `length`, `number` — the
-  setting screen renders a matching `<input>` per token.
+
+### Tokens (site-wide)
+
+`tokens` declares CSS-variable knobs that show up on each site's
+**Settings** screen.
+
+- `tokens[].type` is one of `color`, `string`, `length`, `number`. The
+  settings screen renders a matching `<input>` per token.
 - `tokens[].default` is the value used when a site has no override.
 
 To expose a new customizable value, add a token here **and** use it in
@@ -63,6 +74,57 @@ custom properties at render time:
 
 Tokens are emitted *after* `theme.css`, so any `var(--accent)` reference
 in your CSS will pick up the overridden value.
+
+### Metadata (per-page)
+
+`metadata` declares per-page settings that show up on the **page editor's
+"Page settings"** section. The active theme drives the form — every
+field you declare becomes an input the user can fill in per page. The
+values reach your templates as `page.metadata.<key>`.
+
+- `metadata[].type` is one of:
+  - `string` — single-line text input
+  - `text` — multi-line textarea
+  - `boolean` — checkbox (template sees `true` / `false`)
+  - `color` — color picker (returns `#rrggbb`)
+  - `url` — text input validated as a URL
+  - `number` — numeric input (template sees `123` or `1.5`, not a string)
+  - `select` — dropdown; requires a non-empty `options` array of strings
+- `metadata[].default` is required and used when the page has no override.
+- `metadata[].description` (optional) is shown as helper text below the input.
+
+Example use inside `page.liquid`:
+
+```liquid
+<article{% if page.metadata.layout == "wide" %} class="wide"{% endif %}>
+  {% if page.metadata.subtitle != "" %}
+    <p class="subtitle">{{ page.metadata.subtitle | escape }}</p>
+  {% endif %}
+  {{ body_html }}
+</article>
+```
+
+Example use inside `layout.liquid` (gating the nav per page):
+
+```liquid
+{% unless page.metadata.hide_navigation %}
+  <nav class="site-nav">…</nav>
+{% endunless %}
+```
+
+**Theme-switch resilience.** Unknown metadata keys are *preserved* on
+save — a page authored under theme A and edited under theme B will keep
+A's keys even though the form doesn't show them, so switching back to A
+restores everything. Tokens behave differently: unknown overrides are
+dropped, because tokens are inert without a matching CSS variable.
+
+**Type coercion.** Form posts always arrive as strings; the renderer
+coerces declared fields to their type before the template sees them.
+That means you can branch directly on `{% if page.metadata.hide_navigation %}`
+without the `"true"` / `"false"` footgun.
+
+**Empty values fall back to defaults.** Blanking an input on save strips
+that key, so the next render reads the manifest default again.
 
 ## Templates
 
@@ -90,6 +152,7 @@ context is a fixed set of plain maps.
 | `posts` | | ✓ | | | ✓ | |
 | `post` | | | ✓ | | | |
 | `page` | | | | ✓ | ✓ | |
+| `page.metadata.<key>` | | | | ✓ | ✓ | |
 | `body_html` | | | ✓ | ✓ | ✓ | |
 
 Each shape:
@@ -97,8 +160,11 @@ Each shape:
 ```
 site     { name, title, description, slug, css_overrides }
 post     { title, slug, excerpt, published_at, url }
-page     { title, slug, format, url }
+page     { title, slug, format, url, metadata }
 ```
+
+`page.metadata` is the merge of your manifest's `metadata` defaults and
+whatever the user filled in on the page editor. See **Metadata** above.
 
 `body_html` arrives **pre-sanitized** by Ledger's HTML allowlist — it is
 the one variable that intentionally emits raw HTML. Drop it in directly:

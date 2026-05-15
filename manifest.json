@@ -11,5 +11,29 @@
       "type": "color",
       "default": "#0066cc"
     }
+  ],
+  "metadata": [
+    {
+      "key": "layout",
+      "label": "Page layout",
+      "type": "select",
+      "options": ["contained", "wide"],
+      "default": "contained",
+      "description": "Use 'wide' to escape the max-width container (e.g. for a landing-style homepage)."
+    },
+    {
+      "key": "subtitle",
+      "label": "Subtitle",
+      "type": "string",
+      "default": "",
+      "description": "Optional small text shown above the page body."
+    },
+    {
+      "key": "hide_navigation",
+      "label": "Hide site navigation",
+      "type": "boolean",
+      "default": false,
+      "description": "Hide the top nav bar on this page only."
+    }
   ]
 }
