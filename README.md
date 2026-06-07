@@ -1,10 +1,10 @@
-# Ledger theme template
+# Masthead theme template
 
-A starter [Ledger](https://github.com/JoeriDijkstra/ledger) theme. Clone
-it, customize the templates and stylesheet, zip the result, and upload it
-through the **Themes** page on any Ledger instance.
+A starter [Masthead](https://github.com/JoeriDijkstra/masthead) theme.
+Clone it, customize the templates and stylesheet, zip the result, and
+upload it through the **Themes** page on any Masthead instance.
 
-This template is a copy of Ledger's built-in `default` theme — minimal,
+This template is a copy of Masthead's built-in `default` theme — minimal,
 readable, opinionated about typography. It's the simplest of the three
 shipped looks and the easiest to fork.
 
@@ -23,7 +23,7 @@ templates/
 assets/                    optional — images, fonts, additional CSS/JS
 ```
 
-Every file listed as `required` must be present in the zip Ledger
+Every file listed as `required` must be present in the zip Masthead
 extracts, or the upload will fail validation.
 
 ## The manifest
@@ -35,12 +35,18 @@ customization surfaces: **tokens** (site-wide knobs) and **metadata**
 ```json
 {
   "name": "Default",
-  "slug": "default",
+  "slug": "my-theme",
   "version": "1.0.0",
-  "author": "Ledger",
+  "author": "Masthead",
   "description": "Minimal, readable, opinionated about typography.",
   "tokens": [
-    { "key": "accent", "label": "Accent color", "type": "color", "default": "#0066cc" }
+    { "key": "accent", "label": "Accent color", "type": "color",
+      "default": "#0066cc", "category": "Colors" },
+    { "key": "logo", "label": "Logo", "type": "file",
+      "default": "", "category": "Branding" },
+    { "key": "font", "label": "Body font", "type": "select",
+      "options": ["ui-sans-serif, system-ui, sans-serif", "ui-serif, Georgia, serif"],
+      "default": "ui-sans-serif, system-ui, sans-serif", "category": "Typography" }
   ],
   "metadata": [
     { "key": "layout", "label": "Page layout", "type": "select",
@@ -49,31 +55,58 @@ customization surfaces: **tokens** (site-wide knobs) and **metadata**
 }
 ```
 
-- `slug` is the unique identifier. It must be 1–32 chars, lowercase
-  letters/digits/hyphens. The slugs `default`, `studio`, and `blank` are
-  reserved for built-ins — pick something else.
-- `version` bumps trigger a re-parse of cached templates on the next
-  request. Use semver.
+- `slug` is the unique identifier. It must be 1–32 chars; lowercase
+  letters, digits, and hyphens; and must start and end with a letter or
+  digit. The slugs `default`, `studio`, and `tailwind` are reserved for
+  built-ins — pick something else.
+- `version` uses semver. Re-uploading a theme **updates it in place only
+  when the manifest version is a strictly-newer SemVer** than the
+  installed copy; otherwise the upload is rejected. Bump it whenever you
+  ship a change you want existing sites to pick up.
 
 ### Tokens (site-wide)
 
-`tokens` declares CSS-variable knobs that show up on each site's
-**Settings** screen.
+`tokens` declares knobs that show up on each site's **Settings** screen.
+Most tokens become CSS custom properties; the `file` type resolves to an
+uploaded asset.
 
-- `tokens[].type` is one of `color`, `string`, `length`, `number`. The
-  settings screen renders a matching `<input>` per token.
+- `tokens[].type` is one of:
+  - `color` — `<input type="color">`; value is a `#rrggbb` string
+  - `string` — free-text input (e.g. a font stack)
+  - `length` — CSS length string (`880px`, `60ch`, `4rem`)
+  - `number` — numeric input, stored as a string for CSS embedding
+  - `file` — a picker over the site's existing uploads; the stored value
+    is the chosen upload's id, **resolved to a public URL at render time**.
+    Good for logos, favicons, header/background images.
+  - `select` — a `<select>` over a fixed `options` array (required,
+    non-empty); value is the chosen option string. Use for switches like
+    a body-font or layout choice.
 - `tokens[].default` is the value used when a site has no override.
+- `tokens[].options` is **required for `select`** — a non-empty array of
+  strings. Ignored for other types.
+- `tokens[].category` (optional) groups the token under a labelled
+  accordion on the Settings screen. Tokens with no category fall under
+  **"General"**. Use categories (`"Colors"`, `"Typography"`, `"Layout"`,
+  …) to keep a large token set navigable.
 
 To expose a new customizable value, add a token here **and** use it in
-`theme.css` as `var(--my-key)`. Ledger emits the effective tokens as CSS
-custom properties at render time:
+`theme.css` as `var(--my-key)`. Masthead emits the effective tokens as CSS
+custom properties at render time, *after* `theme.css`, so any
+`var(--accent)` reference picks up the overridden value:
 
 ```css
 :root { --accent: <user value or default>; }
 ```
 
-Tokens are emitted *after* `theme.css`, so any `var(--accent)` reference
-in your CSS will pick up the overridden value.
+**`file` tokens in CSS.** A `file` token is emitted as a CSS `url(...)`,
+so reference it with `var()` where a URL is expected:
+
+```css
+.site-header { background-image: var(--hero); }
+```
+
+An empty `file` token (no upload chosen) resolves to an empty string, so
+guard with a sensible default or let the rule no-op.
 
 ### Metadata (per-page)
 
@@ -158,15 +191,19 @@ context is a fixed set of plain maps.
 Each shape:
 
 ```
-site     { name, title, description, slug, css_overrides }
+site     { name, title, description, slug, css_overrides, homepage_slug }
 post     { title, slug, excerpt, published_at, url }
 page     { title, slug, format, url, metadata }
 ```
 
+`site.homepage_slug` is the slug of the page chosen as the site's
+homepage (empty when the homepage is the default post list) — handy for
+marking the active nav item.
+
 `page.metadata` is the merge of your manifest's `metadata` defaults and
 whatever the user filled in on the page editor. See **Metadata** above.
 
-`body_html` arrives **pre-sanitized** by Ledger's HTML allowlist — it is
+`body_html` arrives **pre-sanitized** by Masthead's HTML allowlist — it is
 the one variable that intentionally emits raw HTML. Drop it in directly:
 
 ```liquid
@@ -188,7 +225,7 @@ execute in every visitor's browser.
 
 ### Filters
 
-Ledger ships the standard Liquid filter set (`escape`, `default`, `date`,
+Masthead ships the standard Liquid filter set (`escape`, `default`, `date`,
 `size`, ...) plus three additions:
 
 | Filter | Use | Example |
@@ -201,16 +238,17 @@ Ledger ships the standard Liquid filter set (`escape`, `default`, `date`,
 
 A typical workflow:
 
-1. Bump the `slug` in `manifest.json` so it doesn't clash with the
-   built-in `default`.
-2. Bump `version` whenever you ship a meaningful change.
+1. Set a `slug` in `manifest.json` that doesn't clash with the built-ins
+   (`default`, `studio`, `tailwind`).
+2. Bump `version` whenever you ship a meaningful change (uploads only
+   update an installed theme when the version is strictly newer).
 3. Edit `theme.css` — the cascade is `theme.css` first, then your token
    overrides, then the site's free-text CSS overrides (set in the
    settings UI).
 4. Edit the templates. Always `| escape` user-supplied strings.
-5. Add or remove tokens as you go. The settings UI rebuilds the
-   customization form from the manifest, so every declared token
-   automatically gets an input.
+5. Add or remove tokens as you go, grouping them with `category`. The
+   settings UI rebuilds the customization form from the manifest, so every
+   declared token automatically gets an input under its category accordion.
 
 ## Packaging and uploading
 
@@ -218,7 +256,7 @@ A typical workflow:
 zip -r my-theme.zip manifest.json theme.css templates assets
 ```
 
-Then in the Ledger admin: **Themes → + Upload theme**, drop the zip in
+Then in the Masthead admin: **Themes → + Upload theme**, drop the zip in
 the modal, click Install. The validator checks size caps, path safety,
 manifest schema, and parses every Liquid template before promoting the
 files into object storage.
