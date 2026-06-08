@@ -1,15 +1,45 @@
 {
   "name": "Default",
-  "slug": "default",
-  "version": "1.0.0",
-  "author": "Ledger",
+  "slug": "upload",
+  "version": "1.1.0",
+  "author": "Masthead",
   "description": "Minimal, readable, opinionated about typography.",
   "tokens": [
     {
       "key": "accent",
       "label": "Accent color",
       "type": "color",
-      "default": "#0066cc"
+      "default": "#0066cc",
+      "category": "Colors"
+    },
+    {
+      "key": "bg",
+      "label": "Background",
+      "type": "color",
+      "default": "#fafafa",
+      "category": "Colors"
+    },
+    {
+      "key": "fg",
+      "label": "Text color",
+      "type": "color",
+      "default": "#1a1a1a",
+      "category": "Colors"
+    },
+    {
+      "key": "font",
+      "label": "Body font",
+      "type": "select",
+      "options": ["ui-sans-serif, system-ui, sans-serif", "ui-serif, Georgia, serif"],
+      "default": "ui-sans-serif, system-ui, sans-serif",
+      "category": "Typography"
+    },
+    {
+      "key": "max",
+      "label": "Content width",
+      "type": "length",
+      "default": "760px",
+      "category": "Layout"
     }
   ],
   "metadata": [
