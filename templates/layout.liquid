@@ -5,21 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ site.title | default: site.name | escape }}</title>
     {% if site.description != "" %}<meta name="description" content="{{ site.description | escape }}" />{% endif %}
+    {% if theme.tokens.favicon != "" %}<link rel="icon" href="{{ theme.tokens.favicon }}" />{% endif %}
     <style>
       {{ theme.css }}
       {{ site.css_overrides }}
     </style>
   </head>
   <body>
-    <nav class="site-nav">
-      <a class="brand" href="/">{{ site.name | escape }}</a>
-      {% if pages != empty %}
-        <ul>
-          {% for p in pages %}<li><a href="{{ p.url }}">{{ p.title | escape }}</a></li>{% endfor %}
-        </ul>
-      {% endif %}
-    </nav>
-    <main>
+    {% unless page.metadata.show_navigation == false %}
+      <nav class="site-nav">
+        <a class="brand" href="/">{{ site.name | escape }}</a>
+        {% if pages != empty %}
+          <ul>
+            {% for p in pages %}<li><a href="{{ p.url }}">{{ p.title | escape }}</a></li>{% endfor %}
+          </ul>
+        {% endif %}
+      </nav>
+    {% endunless %}
+    <main{% if page.metadata.layout == "wide" %} class="wide"{% endif %}>
       {{ content }}
     </main>
     <footer class="site-footer">

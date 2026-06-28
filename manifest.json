@@ -1,7 +1,7 @@
 {
   "name": "Default",
-  "slug": "upload",
-  "version": "1.1.0",
+  "slug": "starter",
+  "version": "1.0.0",
   "author": "Masthead",
   "description": "Minimal, readable, opinionated about typography.",
   "tokens": [
@@ -10,36 +10,28 @@
       "label": "Accent color",
       "type": "color",
       "default": "#0066cc",
-      "category": "Colors"
+      "category": "Appearance"
     },
     {
-      "key": "bg",
-      "label": "Background",
-      "type": "color",
-      "default": "#fafafa",
-      "category": "Colors"
+      "key": "favicon",
+      "label": "Favicon",
+      "type": "file",
+      "default": "",
+      "category": "Appearance"
     },
     {
-      "key": "fg",
-      "label": "Text color",
-      "type": "color",
-      "default": "#1a1a1a",
-      "category": "Colors"
+      "key": "show_search",
+      "label": "Show post search",
+      "type": "boolean",
+      "default": false,
+      "category": "Posts"
     },
     {
-      "key": "font",
-      "label": "Body font",
-      "type": "select",
-      "options": ["ui-sans-serif, system-ui, sans-serif", "ui-serif, Georgia, serif"],
-      "default": "ui-sans-serif, system-ui, sans-serif",
-      "category": "Typography"
-    },
-    {
-      "key": "max",
-      "label": "Content width",
-      "type": "length",
-      "default": "760px",
-      "category": "Layout"
+      "key": "show_tags",
+      "label": "Show tags on posts",
+      "type": "boolean",
+      "default": false,
+      "category": "Posts"
     }
   ],
   "metadata": [
@@ -52,18 +44,11 @@
       "description": "Use 'wide' to escape the max-width container (e.g. for a landing-style homepage)."
     },
     {
-      "key": "subtitle",
-      "label": "Subtitle",
-      "type": "string",
-      "default": "",
-      "description": "Optional small text shown above the page body."
-    },
-    {
-      "key": "hide_navigation",
-      "label": "Hide site navigation",
+      "key": "show_navigation",
+      "label": "Show site navigation",
       "type": "boolean",
-      "default": false,
-      "description": "Hide the top nav bar on this page only."
+      "default": true,
+      "description": "Untick to hide the top nav bar on this page only — useful for splash / landing pages."
     }
   ]
 }
